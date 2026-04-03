@@ -19,7 +19,8 @@ $products = $pdo->query("SELECT * FROM products ORDER BY id DESC LIMIT 20")->fet
 <!DOCTYPE html>
 <html>
 <head><title>Staff Dashboard</title><style>body{font-family:sans-serif;padding:20px;max-width:900px;margin:auto;}
-table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{border:1px solid #ddd;padding:8px;text-align:left;}
+table{width:100%;border-collapse:collapse;margin:20px 0;} 
+th,td{border:1px solid lightgray;padding:8px;text-align:left;}
 form input,form button{padding:8px;margin:5px;}</style></head>
 <body>
     <h1>Staff Dashboard - Inventory Management</h1>
