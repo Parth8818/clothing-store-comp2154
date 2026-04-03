@@ -7,7 +7,7 @@ $products = $pdo->query("SELECT * FROM products WHERE stock > 0 ORDER BY name")-
 <!DOCTYPE html>
 <html>
 <head><title>Products</title><style>body{font-family:sans-serif;padding:20px;max-width:800px;margin:auto;}
-.product{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:5px;} .price{font-weight:bold;color:green;}
+.product{border:1px solid lightgray;padding:15px;margin:10px 0;border-radius:5px;}
 </style></head>
 <body>
     <h1>Available Products (<?=count($products)?>)</h1>
