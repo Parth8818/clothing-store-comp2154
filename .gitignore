@@ -1,0 +1,10 @@
+# Ignore generated password helper after use
+generate-passwords.php
+
+# IDE files
+.vscode/
+.idea/
+*.DS_Store
+
+# XAMPP / local config overrides
+config.local.php
