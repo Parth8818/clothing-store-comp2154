@@ -1,3 +1,49 @@
+<?php
+session_start();
+
+
+if (!isset($_SESSION["role"]) || $_SESSION["role"] != "staff") {
+    header("Location: login.php");
+    exit;
+}
+
+
+require "config.php";
+
+$message = "";
+
+
+if ($_POST && isset($_POST["add"])) {
+    $name        = trim($_POST["name"]);
+    $description = trim($_POST["description"]);
+    $price       = floatval($_POST["price"]);
+    $stock       = intval($_POST["stock"]);
+
+    if (empty($name) || $price <= 0 || $stock < 0) {
+        $message = "Please fill in all fields correctly.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO products (name, description, price, stock) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$name, $description, $price, $stock]);
+            $message = "Product added successfully.";
+        } catch (PDOException $e) {
+            $message = "Error adding product: " . $e->getMessage();
+        }
+    }
+}
+
+
+if (isset($_GET["delete"])) {
+    $id = (int)$_GET["delete"];
+    $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
+    $stmt->execute([$id]);
+    header("Location: staff.php");
+    exit;
+}
+
+
+$products = $pdo->query("SELECT * FROM products ORDER BY id DESC")->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +51,7 @@
     <title>Staff Dashboard | Inventory</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Specific layout for the Add Product form */
+     
         .add-product-form {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -39,7 +85,7 @@
         <section>
             <h2>Add New Product</h2>
             <?php if ($message): ?>
-                <p class="success-msg" style="background: Honeydew; color: ForestGreen; padding: 10px; border-radius: 5px;">
+                <p class="success-msg" style="background: Honeydew; color: ForestGreen; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
                     <?= htmlspecialchars($message) ?>
                 </p>
             <?php endif; ?>
@@ -69,8 +115,11 @@
 
         <section>
             <h2>Current Inventory (<?= count($products) ?> items)</h2>
+            
             <?php if (empty($products)): ?>
-                <p class="text-center">Your warehouse is currently empty.</p>
+                <div class="text-center" style="padding: 40px; border: 1px dashed Silver; border-radius: 8px;">
+                    <p>Your warehouse is currently empty.</p>
+                </div>
             <?php else: ?>
                 <table>
                     <thead>
@@ -88,17 +137,17 @@
                             <tr>
                                 <td><small>#<?= $p["id"] ?></small></td>
                                 <td><strong><?= htmlspecialchars($p["name"]) ?></strong></td>
-                                <td style="color: ForestGreen;">$<?= number_format($p["price"], 2) ?></td>
+                                <td style="color: ForestGreen; font-weight: bold;">$<?= number_format($p["price"], 2) ?></td>
                                 <td>
                                     <?php if ($p["stock"] <= 5): ?>
-                                        <span class="stock-warning"><?= $p["stock"] ?> (Low)</span>
+                                        <span class="stock-warning"><?= $p["stock"] ?> (Low Stock)</span>
                                     <?php else: ?>
                                         <?= $p["stock"] ?>
                                     <?php endif; ?>
                                 </td>
                                 <td><small><?= date("M j, Y", strtotime($p["created_at"])) ?></small></td>
                                 <td>
-                                    <a href="edit-product.php?id=<?= $p["id"] ?>" style="color: SteelBlue; text-decoration: none;">Edit</a> | 
+                                    <a href="edit-product.php?id=<?= $p["id"] ?>" style="color: SteelBlue; text-decoration: none; font-weight: bold;">Edit</a> | 
                                     <a href="staff.php?delete=<?= $p["id"] ?>" 
                                        style="color: FireBrick; text-decoration: none;"
                                        onclick="return confirm('Delete this product permanently?')">Delete</a>
