@@ -2,25 +2,38 @@
 session_start();
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Order Successful!</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; }
-        .card { border: 1px solid #ccc; padding: 30px; display: inline-block; border-radius: 10px; background: #f9f9f9; }
-        .green-check { color: green; font-size: 50px; }
-        a { text-decoration: none; color: blue; margin: 0 10px; }
-    </style>
+    <meta charset="UTF-8">
+    <title>Order Successful | Clothing Store</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="card">
-        <div class="green-check">✔</div>
-        <h1>Thank You!</h1>
-        <p>Your order has been placed successfully.</p>
-        <p>The inventory has been updated in our database.</p>
-        <hr>
-        <a href="products.php">Back to Shop</a>
-        <a href="orders.php">View My Orders</a>
+    <div class="container">
+        <ul class="steps">
+            <li class="step complete">1. Cart</li>
+            <li class="step complete">2. Review Order</li>
+            <li class="step active">3. Confirmation</li>
+        </ul>
+
+        <div class="text-center">
+            <div style="font-size: 80px; color: ForestGreen;">✔</div>
+            <h1>Thank You for Your Order!</h1>
+            
+            <div style="margin: 30px 0; padding: 20px; background-color: WhiteSmoke; border-radius: 8px;">
+                <p>Your transaction was completed successfully.</p>
+                <p><strong>Inventory Update:</strong> The stock levels in the <code>products</code> table have been adjusted automatically.</p>
+            </div>
+
+            <div class="mt-20">
+                <a href="products.php" class="btn btn-primary">Continue Shopping</a>
+                <a href="orders.php" class="btn btn-primary" style="background: SlateGray;">View My Orders</a>
+            </div>
+            
+            <p class="mt-20">
+                <a href="index.php" class="back-link">Return to Home Page</a>
+            </p>
+        </div>
     </div>
 </body>
 </html>
