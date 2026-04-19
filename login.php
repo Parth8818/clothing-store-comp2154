@@ -26,10 +26,7 @@ if ($_POST) {
 <html>
 <head>
     <title>Login</title>
-    <style>
-        body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; }
-        form input, form button { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; }
-    </style>
+   <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Login</h1>
