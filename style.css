@@ -1,0 +1,108 @@
+
+:root {
+  
+    --primary: MidnightBlue;
+    --accent: SteelBlue;
+    --success: ForestGreen;
+    --danger: FireBrick;
+    --bg-light: WhiteSmoke;
+    --white: White;
+    --shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--primary);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+
+h1, h2, h3 {
+    color: var(--primary);
+    text-align: center;
+}
+
+
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: DodgerBlue; transform: translateY(-2px); }
+
+.btn-success { background: var(--success); color: white; width: 100%; }
+.btn-success:hover { background: Green; transform: translateY(-2px); }
+
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+input[type="text"], 
+input[type="password"], 
+input[type="number"], 
+input[type="email"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid LightGray;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th {
+    background: GhostWhite;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 2px solid Gainsboro;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid WhiteSmoke;
+}
+
+.steps {
+    display: flex;
+    justify-content: space-around;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.step { color: Silver; font-weight: bold; }
+.step.active { color: SteelBlue; border-bottom: 2px solid SteelBlue; }
+.step.complete { color: ForestGreen; }
+
+
+.text-center { text-align: center; }
+.mt-20 { margin-top: 20px; }
+.error-msg { color: FireBrick; background: MistyRose; padding: 10px; border-radius: 5px; }
