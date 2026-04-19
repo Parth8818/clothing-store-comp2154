@@ -2,68 +2,77 @@
 session_start();
 require "config.php";
 
+// 1. Security Check: Must be logged in
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit;
 }
 
+// 2. Cart Check: Must have items to checkout
 if (empty($_SESSION["cart"])) {
     header("Location: cart.php");
     exit;
 }
 
-$error   = "";
-$success = false;
+$error = "";
 
-if ($_POST) {
+// 3. Handle the "Confirm Order" button click
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION["user_id"];
     $cart    = $_SESSION["cart"];
 
-    // Calculate total
+    // Calculate total price
     $total = 0;
     foreach ($cart as $item) {
         $total += $item["price"] * $item["quantity"];
     }
 
-    // Use a transaction - order + stock updates all happen together or not at all
     try {
+        // START TRANSACTION (The "Atomic" Part)
         $pdo->beginTransaction();
 
-        // Create the order
-        $stmt = $pdo->prepare("INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'completed')");
+        // A. Create the main order record
+        $stmt = $pdo->prepare("INSERT INTO orders (user_id, total, status, created_at) VALUES (?, ?, 'completed', NOW())");
         $stmt->execute([$user_id, $total]);
         $order_id = $pdo->lastInsertId();
 
-        // Add each item and reduce stock
+        // B. Loop through cart to add items and reduce stock
         foreach ($cart as $product_id => $item) {
             $qty   = $item["quantity"];
             $price = $item["price"];
 
-            // Insert order item
+            // Insert into order_items table
             $stmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
             $stmt->execute([$order_id, $product_id, $qty, $price]);
 
-            // Reduce stock - only if enough is available
+            // Reduce stock ONLY if enough is available (Security check)
             $stmt = $pdo->prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?");
             $stmt->execute([$qty, $product_id, $qty]);
 
+            // If the stock didn't change, it means someone bought the last one while you were looking!
             if ($stmt->rowCount() === 0) {
-                throw new Exception("Not enough stock for: " . htmlspecialchars($item["name"]));
+                throw new Exception("Sorry, " . htmlspecialchars($item["name"]) . " is now out of stock.");
             }
         }
 
+        // COMMIT (Save everything to the database forever)
         $pdo->commit();
 
-        // Clear the cart after successful order
+        // CLEAR CART
         $_SESSION["cart"] = [];
-        $success = true;
+
+        // REDIRECT (This stops the "stuck" feeling)
+        header("Location: order_success.php");
+        exit();
 
     } catch (Exception $e) {
+        // ROLLBACK (If anything failed, undo everything so we don't have errors)
         $pdo->rollBack();
         $error = $e->getMessage();
     }
 }
 
+// Prepare data for the page view
 $cart  = $_SESSION["cart"] ?? [];
 $total = 0;
 foreach ($cart as $item) {
@@ -71,36 +80,39 @@ foreach ($cart as $item) {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Checkout</title>
+    <meta charset="UTF-8">
+    <title>Checkout | Clothing Store</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 700px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { border: 1px solid lightgray; padding: 10px; }
-        .success-box { background: #e6ffe6; border: 1px solid green; padding: 20px; border-radius: 5px; }
-        button { padding: 10px 25px; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; max-width: 800px; margin: auto; line-height: 1.6; }
+        .summary-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .summary-table th, .summary-table td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        .error-msg { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .btn-confirm { background-color: #28a745; color: white; border: none; padding: 15px 30px; font-size: 18px; cursor: pointer; border-radius: 5px; width: 100%; }
+        .btn-confirm:hover { background-color: #218838; }
+        .back-link { display: block; margin-top: 20px; text-align: center; color: #666; text-decoration: none; }
     </style>
 </head>
 <body>
-    <h1>Checkout</h1>
 
-    <?php if ($success): ?>
-        <div class="success-box">
-            <h2>Order Placed!</h2>
-            <p>Your order was successful. Stock has been updated.</p>
-            <a href="products.php">Continue Shopping</a> |
-            <a href="orders.php">View My Orders</a>
-        </div>
+    <h1>Finalize Your Order</h1>
 
-    <?php else: ?>
-        <?php if ($error): ?>
-            <p style="color:red;"><?= $error ?></p>
-        <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="error-msg"><?= $error ?></div>
+    <?php endif; ?>
 
-        <h2>Order Summary</h2>
-        <table>
-            <tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+    <h2>Order Summary</h2>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
             <?php foreach ($cart as $item): ?>
                 <tr>
                     <td><?= htmlspecialchars($item["name"]) ?></td>
@@ -109,16 +121,20 @@ foreach ($cart as $item) {
                     <td>$<?= number_format($item["price"] * $item["quantity"], 2) ?></td>
                 </tr>
             <?php endforeach; ?>
+        </tbody>
+        <tfoot>
             <tr>
-                <td colspan="3"><strong>Total</strong></td>
+                <td colspan="3" style="text-align:right"><strong>Total Amount:</strong></td>
                 <td><strong>$<?= number_format($total, 2) ?></strong></td>
             </tr>
-        </table>
+        </tfoot>
+    </table>
 
-        <form method="POST">
-            <button type="submit">Confirm Order</button>
-        </form>
-        <p><a href="cart.php">Back to Cart</a></p>
-    <?php endif; ?>
+    <form method="POST">
+        <button type="submit" class="btn-confirm">Place Order & Pay</button>
+    </form>
+    
+    <a href="cart.php" class="back-link">← Return to Cart</a>
+
 </body>
 </html>
