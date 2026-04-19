@@ -13,73 +13,105 @@ if ($search) {
 $products = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Products</title>
+    <meta charset="UTF-8">
+    <title>Store | Clothing Store</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 900px; margin: auto; }
-        .product { border: 1px solid lightgray; padding: 15px; margin: 10px 0; border-radius: 5px; }
-        .product h3 { margin: 0 0 5px 0; }
-        .price { color: #333; font-weight: bold; }
-        .stock { color: gray; font-size: 0.9em; }
-        .search-form { margin: 15px 0; }
-        .search-form input { padding: 8px; width: 250px; }
-        .search-form button, .search-form a { padding: 8px 12px; margin-left: 5px; }
-        .out-of-stock { color: red; }
+        /* Custom styles for the product grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .product-card {
+            border: 1px solid WhiteSmoke;
+            padding: 20px;
+            border-radius: 10px;
+            background: White;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-card:hover { transform: translateY(-5px); }
+        .product-card h3 { text-align: left; margin: 10px 0; color: MidnightBlue; }
+        .price-tag { font-size: 1.2rem; color: ForestGreen; font-weight: bold; margin: 10px 0; }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>Products</h1>
-    <nav>
-        <a href="index.php">Home</a> |
-        <?php if (isset($_SESSION["user_id"])): ?>
-            <a href="cart.php">Cart</a> |
-            <?php if ($_SESSION["role"] == "staff"): ?>
-                <a href="staff.php">Staff Dashboard</a> |
-            <?php endif; ?>
-            <a href="logout.php">Logout</a>
-        <?php else: ?>
-            <a href="login.php">Login</a> |
-            <a href="register.php">Register</a>
-        <?php endif; ?>
-    </nav>
+    <div class="container">
+        <h1>Our Collection</h1>
 
-    <div class="search-form">
-        <form method="GET">
-            <input type="text" name="search" placeholder="Search products..."
-                   value="<?= htmlspecialchars($search) ?>">
-            <button type="submit">Search</button>
+        <nav class="text-center" style="margin-bottom: 20px;">
+            <a href="index.php">Home</a> |
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <a href="cart.php">My Cart</a> |
+                <a href="orders.php">My Orders</a> |
+                <a href="logout.php" style="color: FireBrick;">Logout</a>
+            <?php else: ?>
+                <a href="login.php">Login</a> |
+                <a href="register.php">Register</a>
+            <?php endif; ?>
+        </nav>
+
+        <form method="GET" class="search-container">
+            <input type="text" name="search" placeholder="Search for clothes..." 
+                   value="<?= htmlspecialchars($search) ?>" style="flex: 1; max-width: 400px;">
+            <button type="submit" class="btn btn-primary">Search</button>
             <?php if ($search): ?>
-                <a href="products.php">Clear</a>
+                <a href="products.php" class="btn" style="background: Silver; color: white;">Clear</a>
             <?php endif; ?>
         </form>
-    </div>
 
-    <p><?= count($products) ?> product(s) available</p>
+        <p class="text-center" style="color: gray;">Showing <?= count($products) ?> available items</p>
 
-    <?php if (empty($products)): ?>
-        <p>No products found.</p>
-    <?php endif; ?>
+        <?php if (empty($products)): ?>
+            <div class="text-center" style="padding: 50px;">
+                <p>We couldn't find any products matching your search.</p>
+                <a href="products.php">See all products</a>
+            </div>
+        <?php endif; ?>
 
-    <?php foreach ($products as $p): ?>
-        <div class="product">
-            <h3><?= htmlspecialchars($p["name"]) ?></h3>
-            <?php if (!empty($p["description"])): ?>
-                <p><?= htmlspecialchars($p["description"]) ?></p>
-            <?php endif; ?>
-            <p class="price">$<?= number_format($p["price"], 2) ?></p>
-            <p class="stock">Stock: <?= $p["stock"] ?> left</p>
-            <?php if (isset($_SESSION["user_id"])): ?>
-                <form method="POST" action="add-to-cart.php" style="display:inline;">
-                    <input type="hidden" name="product_id" value="<?= $p["id"] ?>">
-                    <input type="number" name="quantity" value="1" min="1"
-                           max="<?= $p["stock"] ?>" style="width:60px; padding:5px;">
-                    <button type="submit">Add to Cart</button>
-                </form>
-            <?php else: ?>
-                <a href="login.php">Login to buy</a>
-            <?php endif; ?>
+        <div class="product-grid">
+            <?php foreach ($products as $p): ?>
+                <div class="product-card">
+                    <div>
+                        <h3><?= htmlspecialchars($p["name"]) ?></h3>
+                        <p style="font-size: 0.9rem; color: #666;">
+                            <?= htmlspecialchars($p["description"] ?? "High quality clothing item.") ?>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <p class="price-tag">$<?= number_format($p["price"], 2) ?></p>
+                        <p style="font-size: 0.8rem; color: Silver;">Stock: <?= $p["stock"] ?> units</p>
+                        
+                        <?php if (isset($_SESSION["user_id"])): ?>
+                            <form method="POST" action="add-to-cart.php">
+                                <input type="hidden" name="product_id" value="<?= $p["id"] ?>">
+                                <div style="display: flex; gap: 5px; margin-top: 10px;">
+                                    <input type="number" name="quantity" value="1" min="1" 
+                                           max="<?= $p["stock"] ?>" style="width: 70px;">
+                                    <button type="submit" class="btn btn-success" style="padding: 10px;">Add</button>
+                                </div>
+                            </form>
+                        <?php else: ?>
+                            <a href="login.php" class="btn btn-primary" style="display: block; margin-top: 10px;">Login to Buy</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
-    <?php endforeach; ?>
+    </div>
 </body>
 </html>
